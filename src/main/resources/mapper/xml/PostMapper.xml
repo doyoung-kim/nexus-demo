@@ -1,0 +1,202 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  
+<mapper namespace="post">
+	<resultMap type="kr.co.ezpmp.core.util.CamelCaseMap" id="camelCaseMap"/>
+	<sql id="getPostSql">
+		SELECT
+			tp.post_no, 
+			project_cd,
+			parent_id, 
+			level, 
+			tp.board_no, 
+			title,
+			attach_grp_cd,
+			attach_file_cnt, 
+			attach_img_cnt, 
+			comment_cnt, 
+			comment_update_dt, 
+			view_cnt, 
+			secret_yn,
+			notice_yn, 
+			receive_email_yn, 
+			del_yn, 
+			reply_yn, 
+			temp_yn, 
+			start_dt, 
+			end_dt, 
+			post_email, 
+			post_password, 
+			create_no, 
+			create_dt, 
+			create_ip, 
+			update_no, 
+			update_dt,
+			tpc.content
+		FROM
+			tb_post tp, tb_post_contents tpc
+		where 
+			tp.post_no = tpc.post_no and
+			tp.del_yn = 'N'
+	</sql>
+	
+	<select id="getPostTotalCount" resultType="int">
+		SELECT
+			count(*)
+		FROM 
+			(<include refid="getPostSql" /> 
+			and (title like '%${keyword}%' or content like '%${keyword}%') and tp.board_no=#{boardNo}) countTable
+	</select>
+	
+	<select id="getPost" resultMap="camelCaseMap">
+		<include refid="getPostSql" />
+			and tp.post_no = #{postNo}
+	</select>
+	
+	<select id="getPostList" resultMap="camelCaseMap">
+		<include refid="getPostSql" />
+			 and (title like '%${keyword}%' or content like '%${keyword}%') and tp.board_no=#{boardNo}
+		<if test="pageSize != 0">
+			LIMIT
+				#{startPage}, #{pageSize}
+		</if>
+	</select>
+	
+	<insert id="addPost" useGeneratedKeys="true" keyProperty="postNo">
+		INSERT INTO 
+			tb_post(project_cd, site_id, parent_id, level, board_no, title, attach_grp_cd, attach_file_cnt, attach_img_cnt, secret_yn, notice_yn, receive_email_yn, reply_yn, temp_yn, start_dt, end_dt, post_email, post_password, create_dt, create_no, create_ip)
+		VALUES
+			(#{projectCd}, #{siteId}, #{parentId}, #{level}, #{boardNo}, #{title}, #{attachGrpCd}, #{attachFileCnt}, #{attachImgCnt}, #{secretYn}, #{noticeYn}, #{receiveEmailYn}, #{replyYn}, #{tempYn}, #{startDt}, #{endDt}, #{postEmail}, #{postPassword}, sysdate(), #{createUserId}, #{createIp})
+	</insert>
+	
+	<insert id="addContent">
+		INSERT INTO 
+			tb_post_contents(post_no, content)
+		VALUES 
+			(#{postNo}, #{content})
+	</insert>
+	
+	<update id="delPost">
+		UPDATE
+			tb_post
+		SET
+			del_yn = 'Y',
+			update_dt = sysdate(),
+			update_no = #{updateUserId}
+		WHERE
+			post_no = #{postNo}
+	</update>
+	
+	<delete id="deletePostRealData">
+		DELETE FROM
+			tb_post
+		WHERE 
+			post_no = #{postNo} 
+	</delete> 
+	
+	<delete id="deletecontents">
+		DELETE FROM
+			tb_post_contents
+		WHERE 
+			post_no = #{postNo}
+	</delete> 
+
+	<update id="setPost">
+		UPDATE 
+			tb_post
+		SET 
+			project_cd = #{projectCd},
+			site_id = #{siteId},
+			parent_id = #{parentId},
+			level = #{level},
+			board_no = #{boardNo},
+			title = #{title},
+			attach_grp_cd = #{attachGrpCd},
+			attach_file_cnt = #{attachFileCnt},
+			attach_img_cnt = #{attachImgCnt},
+			comment_update_dt = sysdate(),
+			secret_yn = #{secretYn},
+			notice_yn = #{noticeYn},
+			receive_email_yn = #{receiveEmailYn},
+			reply_yn = #{replyYn},
+			temp_yn = #{tempYn},
+			start_dt = #{startDt},
+			end_dt = #{endDt},
+			post_email = #{postEmail},
+			post_password = #{postPassword},
+			update_dt = sysdate(),
+			update_no = #{updateUserId}
+		WHERE 
+			post_no = #{postNo}
+	</update>
+	
+	<update id="setPostContent">
+		UPDATE 
+			tb_post_contents
+    	SET 
+    		content = #{content}
+    	WHERE 
+    		post_no = #{postNo}
+	</update>
+	
+	<update id="updateViewCount">
+		UPDATE
+			tb_post
+    	SET 
+    		view_cnt = view_cnt+1
+    	WHERE 
+    		post_no = #{postNo}
+	</update>
+	
+	<select id="getNoticeList" resultMap="camelCaseMap">
+		<include refid="getPostSql" />
+			and tp.board_no = #{boardNo}
+			and notice_yn = 'Y'
+	</select>
+	
+	<select id="getExcelList" resultMap="camelCaseMap">
+		SELECT
+			post_no, 
+			project_cd,
+			site_id, 
+			parent_id, 
+			level, 
+			board_no, 
+			title,
+			attach_grp_cd,
+			attach_file_cnt, 
+			attach_img_cnt, 
+			comment_cnt, 
+			comment_update_dt, 
+			view_cnt, 
+			secret_yn,
+			notice_yn, 
+			receive_email_yn, 
+			del_yn, 
+			reply_yn, 
+			temp_yn, 
+			start_dt, 
+			end_dt, 
+			post_email, 
+			post_password, 
+			create_dt, 
+			create_no, 
+			create_ip,
+			update_dt, 
+			update_no
+		FROM
+			tb_post
+		WHERE 
+			board_no = #{boardNo}
+	</select>
+	
+	<update id="updatePostCommentCount">
+		UPDATE
+			tb_post
+		SET
+			comment_cnt = comment_cnt+#{count}
+		WHERE
+			post_no = #{postNo}
+	</update>
+</mapper>

@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  
+<mapper namespace="terms">
+	<resultMap type="kr.co.ezpmp.core.util.CamelCaseMap" id="camelCaseMap"/>
+	<sql id="getTermsSql">
+		SELECT 
+			terms_no, project_cd, site_id, terms_key, lang_cd, title, content, use_yn, del_yn, create_no, create_dt, update_no, update_dt
+		FROM 
+			tb_terms
+		WHERE
+			del_yn = 'N'
+	</sql>
+	
+	<select id="getTerms" resultMap="camelCaseMap">
+		<include refid="getTermsSql" />
+		and project_cd=#{projectCd} and site_id=#{siteId} and terms_key=#{termsKey} and lang_cd=#{langCd}
+	</select>
+	
+	<select id="getTermsList" resultMap="camelCaseMap">
+		<include refid="getTermsSql" />
+		and project_cd=#{projectCd} and site_id=#{siteId}
+	</select>
+	
+	<insert id="addTerms" useGeneratedKeys="true" keyProperty="termsNo">
+		INSERT INTO 
+			tb_terms 
+			(project_cd, site_id, terms_key, lang_cd, title, content, use_yn, del_yn, create_dt, create_no)
+		VALUES
+			(#{projectCd}, #{siteId}, #{termsKey}, #{langCd}, #{title}, #{content}, #{useYn}, 'N', sysdate(), #{createNo})
+	</insert>
+	
+	<update id="setTerms">
+		UPDATE 
+			tb_terms
+		SET 
+			terms_key=#{termsKey}, lang_cd=#{langCd}, title=#{title}, content=#{content}, use_yn=#{useYn}, update_no=#{updateNo}, update_dt=sysdate()
+		WHERE 
+			terms_no=#{termsNo}
+	</update>
+	
+	<delete id="delTerms">
+		DELETE FROM
+			tb_terms
+		WHERE
+			terms_no = #{termsNo}
+	</delete>
+</mapper>

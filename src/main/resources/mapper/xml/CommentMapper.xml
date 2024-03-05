@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  
+<mapper namespace="comment">
+	<resultMap type="kr.co.ezpmp.core.util.CamelCaseMap" id="camelCaseMap"/>
+	<sql id="getCommentSql">
+		SELECT 
+			tc.comment_no,
+			tc.post_no,
+			tc.parent_id,
+			tc.level,
+			case when tc.del_yn = 'Y' then '해당 댓글은 삭제되었습니다.'
+				else tc.content end as content,
+			tc.create_no,
+			tc.create_dt,
+			tc.update_no,
+			tc.update_dt,
+			tc.secret_yn,
+			tc.del_yn,
+			tc.non_member_username,
+			tc.non_member_password
+		FROM 
+			tb_comment tc, tb_post tp
+		WHERE
+			tc.post_no = tp.post_no
+	</sql>
+	
+	<select id="getComment" resultMap="camelCaseMap">
+		<include refid="getCommentSql" />
+		and 
+			comment_no = #{commentNo}
+	</select>
+	
+	<select id="getCommentList" resultMap="camelCaseMap">
+		<include refid="getCommentSql" />
+			and tc.post_no = #{postNo}
+		ORDER BY
+			create_dt desc
+		<if test="pageSize != 0">
+			LIMIT
+				#{startPage}, #{pageSize}
+		</if>
+	</select>
+	
+	<select id="getTotalCount" resultType="int">
+		SELECT
+			count(*)
+		FROM 
+			(<include refid="getCommentSql" />
+				and tc.post_no = #{postNo} 
+				<if test="pageSize != 0">
+					LIMIT #{startPage}, #{pageSize}
+				</if>) tableCount
+	</select>
+	
+	<insert id="addComment" useGeneratedKeys="true" keyProperty="commentNo">
+		INSERT INTO 
+			tb_comment(post_no, parent_id, level, content, create_no, create_dt, secret_yn, non_member_username, non_member_password)
+		VALUES(#{postNo}, #{parentId}, 1, #{content}, #{createUserId}, sysdate(), #{secretYn}, '', '');
+	</insert>
+	
+	<update id="delComment">
+		UPDATE
+			tb_comment
+		SET
+			del_yn = 'Y',
+			update_dt = sysdate(),
+			update_no = #{updateUserId}
+		WHERE
+			comment_no = #{commentNo}
+	</update>
+	
+	<update id="setComment">
+		UPDATE
+			tb_comment
+		SET
+			content = #{content},
+			update_dt = sysdate(),
+			update_no = #{updateUserId}
+		WHERE
+			comment_no = #{commentNo}
+	</update>
+</mapper>

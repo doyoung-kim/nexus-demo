@@ -1,0 +1,23 @@
+image: docker:latest
+stages:
+  - build
+  - iq_policy_eval
+  - test
+
+nexus-build:
+  image: maven:3-jdk-11
+  stage: build
+  script:
+  - "mvn install -Dmaven.test.skip=true"
+
+iq_policy_eval:
+  stage: test
+  image: sonatype/gitlab-nexus-iq-pipeline:1.106.0-01
+  script:
+    - /sonatype/evaluate -i Sandbox target/board-api-0.0.3-SNAPSHOT.jar
+  artifacts:
+    name: "policy-eval-$CI_JOB_NAME-$CI_COMMIT_REF_NAME"
+    paths:
+      - Sandbox-policy-eval-report.html
+
+

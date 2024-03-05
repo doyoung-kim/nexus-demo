@@ -1,0 +1,36 @@
+spring:
+  datasource:
+#    url: jdbc:mysql://192.168.10.229:3306/board?serverTimezone=Asia/Seoul&allowPublicKeyRetrieval=true&useSSL=false
+    driver-class-name: net.sf.log4jdbc.sql.jdbcapi.DriverSpy
+    jdbc-url: jdbc:log4jdbc:mysql://192.168.10.229:3306/board?serverTimezone=UTC&allowPublicKeyRetrieval=true&useSSL=false&allowMultiQueries=true
+    username: ezpmp
+    password: dlwmvldpavl
+
+mybatis:
+  mapper-locations: mapper/xml/*.xml
+  configuration:
+    map-underscore-to-camel-case: true
+
+server:
+  port: 1021
+
+ezpmp:
+  swagger:
+    base-package: "com.edmp.api.board"
+    enabled: true
+  redis: ### Redis 설정
+    holdingTime: '1'
+    enabled: true
+
+    host: host.docker.internal
+    port: 6379
+    password: ""
+    lettuce:
+      pool:
+        max-active: 10
+        max-idle: 10
+        min-idle: 2
+#  ceph: ### Ceph 설정 - common으로 이동
+#    access-key: 'VMKIP66TU7S62MEATARD'
+#    secret-key: 'MGiukxjD7RUkhWf6XWW6vkXJB7ihXtGiLPxwlM6q'
+#    service-endpoint: 's3.ezpmp.co.kr:30334'

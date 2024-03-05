@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  
+<mapper namespace="board">
+	<resultMap type="kr.co.ezpmp.core.util.CamelCaseMap" id="camelCaseMap"/>
+	
+	<sql id="getBoardSql">
+		SELECT 
+			board_no, 
+			project_cd,
+			site_id, 
+			board_type_cd, 
+			board_nm, 
+			category_cd1, 
+			category_cd2, 
+			category_cd3, 
+			header,
+			footer,
+			search_yn, 
+			excel_yn, 
+			reply_yn, 
+			comment_yn, 
+			page_size, 
+			page_unit, 
+			paging_yn, 
+			use_yn,
+			attach_file_count,
+			attach_file_size,
+			attachable_ext,
+			del_yn, 
+			create_dt, 
+			create_no, 
+			update_dt, 
+			update_no
+		FROM 
+			tb_board
+		WHERE
+			del_yn = 'N'
+	</sql>
+	<select id="getBoard" resultMap="camelCaseMap">
+		<include refid="getBoardSql" />
+		AND
+			board_no = #{boardNo}
+	</select>
+	
+	<select id="getBoardTotalCount" resultType="int">
+		SELECT
+			count(*)
+		FROM
+			(<include refid="getBoardSql" /> AND board_nm like '%${keyword}%') countTable
+	</select>
+	
+	<select id="getBoardList" resultMap="camelCaseMap">
+		<include refid="getBoardSql" />
+		AND
+			board_nm like '%${keyword}%'
+		<if test="startPage != 0 and pageSize != 0">
+			LIMIT
+				#{startPage}, #{pageSize}
+		</if>
+		
+	</select>
+	
+	<insert id="addBoard" useGeneratedKeys="true" keyProperty="boardNo">
+		INSERT INTO 
+			tb_board(
+				project_cd, 
+				site_id, 
+				board_type_cd, 
+				board_nm, 
+				category_cd1, 
+				category_cd2, 
+				category_cd3, 
+				header, 
+				footer, 
+				search_yn, 
+				excel_yn, 
+				reply_yn, 
+				comment_yn, 
+				page_size, 
+				page_unit, 
+				paging_yn, 
+				use_yn, 
+				attach_file_count,
+				attach_file_size, 
+				attachable_ext, 
+				create_dt, 
+				create_no, 
+				update_dt, 
+				update_no)
+		VALUES(
+			#{projectCd}, 
+			#{siteId}, 
+			'', 
+			#{boardNm}, 
+			#{categoryCd1}, 
+			#{categoryCd2}, 
+			#{categoryCd3}, 
+			#{header}, 
+			#{footer}, 
+			#{searchYn}, 
+			#{excelYn}, 
+			#{replyYn}, 
+			#{commentYn}, 
+			#{pageSize}, 
+			#{pageUnit}, 
+			#{pagingYn}, 
+			#{useYn}, 
+			#{attachFileCount}, 
+			#{attachFileSize},
+			#{attachableExt},
+			sysdate(), 
+			#{createUserId}, 
+			sysdate(), 
+			#{updateUserId})
+	</insert>
+	
+	<update id="setBoard">
+		UPDATE
+			tb_board
+		SET
+			board_nm = #{boardNm},
+			category_cd1 = #{categoryCd1},
+			category_cd2 = #{categoryCd2},
+			category_cd3 = #{categoryCd3},
+			header = #{header},
+			footer = #{footer},
+			search_yn = #{searchYn},
+			excel_yn = #{excelYn},
+			reply_yn = #{replyYn},
+			comment_yn = #{commentYn},
+			page_size = #{pageSize},
+			page_unit = #{pageUnit},
+			paging_yn = #{pagingYn},
+			use_yn = #{useYn},
+			attach_file_count = #{attachFileCount},
+			attach_file_size = #{attachFileSize},
+			attachable_ext = #{attachableExt},
+			update_dt = sysdate(), 
+			update_no = #{updateUserId}
+		WHERE
+			board_no = #{boardNo}
+	</update>
+	
+	<update id="delBoard">
+		UPDATE 
+			tb_board
+		SET
+			del_yn = 'Y',
+			update_dt = sysdate(),
+			update_no = #{updateUserId}
+		WHERE
+			board_no = #{boardNo}
+	</update>
+	
+	<delete id="deleteBoardRealData">
+		DELETE FROM
+			tb_board
+		WHERE
+			board_no = #{boardNo}
+	</delete>
+</mapper>

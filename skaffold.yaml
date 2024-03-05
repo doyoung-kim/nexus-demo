@@ -1,0 +1,50 @@
+apiVersion: skaffold/v2beta12
+kind: Config
+metadata:
+  name: board
+
+profiles:
+  - name: kind
+    build:
+      insecureRegistries:
+        - harbor.ezpmp.co.kr
+      local:
+        push: false
+      artifacts:
+        - image: ezpmp/board-api
+          jib:
+            type: maven
+            args:
+              - -DskipTests
+              - "-Djib.container.environment=SPRING_PROFILES_ACTIVE=kind"
+            fromImage: adoptopenjdk/openjdk11:alpine-jre
+    deploy:
+      kubectl:
+        manifests:
+          - k8s/board-api.yaml
+#          - k8s/fluentbit-configmap.yaml
+
+    portForward:
+      - resourceType: service
+        resourceName: board-api-svc
+        port: 80 #
+        localPort: 1021 # *Optional*
+  - name: prod
+    build:
+      local:
+        push: true
+        tryImportMissing: true
+      artifacts:
+        - image: harbor.ezpmp.co.kr/ezpmp/board-api
+          jib:
+            type: maven
+            args:
+              - -DskipTests
+              - "-Djib.container.environment=SPRING_PROFILES_ACTIVE=prod"
+            fromImage: adoptopenjdk/openjdk11:alpine-jre
+
+    deploy:
+      kubectl:
+        manifests:
+          - k8s/board-api.yaml
+          - k8s/fluentbit-configmap.yaml

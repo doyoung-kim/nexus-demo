@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  
+<mapper namespace="popup">
+	<resultMap type="kr.co.ezpmp.core.util.CamelCaseMap" id="camelCaseMap"/>
+	<sql id="getPopupSql">
+		SELECT 
+			popup_no,
+			project_cd,
+			site_id,
+			title,
+			content,
+			width,
+			height,
+			position_x,
+			position_y,
+			start_dt,
+			end_dt,
+			use_yn,
+			new_window_yn,
+			lock_today_yn,
+			create_no,
+			create_dt,
+			update_no,
+			update_dt
+		FROM
+			tb_popup
+		WHERE
+			del_yn = 'N'
+	</sql>
+	
+	<select id="getPopup" resultMap="camelCaseMap">
+		<include refid="getPopupSql" />
+		AND
+			popup_no = #{popupNo}
+	</select>
+	
+	<select id="getPopupList" resultMap="camelCaseMap">
+		<include refid="getPopupSql" />
+		AND
+			(title like '%${keyword}%' or content like '%${keyword}%')
+		ORDER BY
+			use_yn desc, start_dt desc
+		LIMIT
+			#{startPage}, #{pageSize}
+	</select>
+	
+	<select id="getPopupListInDateTime" resultMap="camelCaseMap">
+		<include refid="getPopupSql" />
+		AND
+			use_yn = 'Y' and
+			( (sysdate() between start_dt and end_dt) or (start_dt is null and end_dt is null) )
+	</select>
+	
+	<select id="getTotalCount" resultType="int">
+		SELECT
+			count(*)
+		FROM 
+			(<include refid="getPopupSql" />
+				AND
+					(title like '%${keyword}%' or content like '%${keyword}%') ) tableCount
+	</select>
+	
+	<insert id="addPopup">
+		INSERT INTO 
+			tb_popup
+			(project_cd, site_id, title, content, width, height, position_x, position_y, start_dt, end_dt, use_yn, new_window_yn, lock_today_yn, create_no, create_dt, update_no, update_dt)
+		VALUES
+			(#{projectCd}, #{siteId}, #{title}, #{content}, #{width}, #{height}, #{positionX}, #{positionY}, #{startDt}, #{endDt}, #{useYn}, #{newWindowYn}, #{lockTodayYn}, #{createUserId}, #{createDt}, #{updateUserId}, #{updateDt})
+	</insert>
+	
+	<update id="setPopup">
+		UPDATE 
+			tb_popup
+		SET  
+			title=#{title}, 
+			content=#{content}, 
+			width=#{width}, 
+			height=#{height}, 
+			position_x=#{positionX}, 
+			position_y=#{positionY}, 
+			start_dt=#{startDt}, 
+			end_dt=#{endDt}, 
+			use_yn=#{useYn}, 
+			new_window_yn=#{newWindowYn}, 
+			lock_today_yn=#{lockTodayYn}, 
+			create_no=#{createUserId}, 
+			create_dt=#{createDt}, 
+			update_no=#{updateUserId}, 
+			update_dt=#{updateDt}
+		WHERE 
+			popup_no=#{popupNo}
+	</update>
+	<update id="delPopup">
+		UPDATE
+			tb_popup
+		SET
+			del_yn = 'Y',
+			update_dt = sysdate(),
+			update_no = #{updateUserId}
+		WHERE
+			popup_no = #{popupNo}
+	</update>
+</mapper>

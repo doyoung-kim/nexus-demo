@@ -1,0 +1,21 @@
+gitlabUrl: "http://192.168.0.14:9443/"
+runnerRegistrationToken: "gt2iQztpoyMnz1A9XH2Z"
+## For RBAC support:
+rbac:
+  create: true
+  clusterWideAccess: true
+
+runners:
+  config: |
+    [[runners]]
+      excutor = "kubernetes"
+      [runners.kubernetes]
+        image = "ubuntu:18.04"
+        [[runners.kubernetes.volumes.host_path]]
+          name = "docker"
+          mount_path = "/var/run/docker.sock"
+          host_path = "/var/run/docker.sock"
+#        [[runners.kubernetes.host_aliases]]
+#          ip = ""
+#          hostnames = ["harbor.or.kr"]
+
